@@ -18,6 +18,34 @@ export default function App() {
     setSelectedTab(newValue);
   };
 
+  const chartWebSocket = new WebSocket("ws://192.168.1.4:8888")
+
+  function onButtonClick() {
+
+    chartWebSocket.onmessage = (event) => {
+      console.log(event.data);
+    }
+
+    console.log("State: " + chartWebSocket.readyState);
+
+    console.log("Button clicked");
+    const x = {
+      "averagePeriod": 7,
+      "clientIp": "192.168.1.4",
+      "device": 0,
+      "deviceId": 1,
+      "end": "Sat Jan 14 13:19:59 2023",
+      "messageType": "getSensorData",
+      "signals": [0, 1],
+      "start": "Fri Jan 6 03:43:59 2023"
+    }
+    
+    chartWebSocket.send(JSON.stringify(x));
+  }
+
+
+
+
   return (
     <Grid container padding={6} height="100vh">
       <Grid container item direction="column" xs={12}>
@@ -56,6 +84,9 @@ export default function App() {
           >
             <Button onClick={() => setStarFromZero(!startFromZero)}>
               {startFromZero ? "Autoscale" : "Scale From Zero"}
+            </Button>
+            <Button onClick={onButtonClick}>
+               Send data request
             </Button>
           </Grid>
         </Grid>
