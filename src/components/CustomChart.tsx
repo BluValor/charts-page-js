@@ -11,7 +11,7 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import 'chartjs-adapter-moment'
-import { ChartsData, ChartEntry } from '../Data';
+import { DataState } from '../Data';
 
 ChartJS.register(
   TimeScale,
@@ -44,29 +44,45 @@ interface CustomChartProps {
   startTimeMs: number,
   endTimeMs: number,
   startFromZero: boolean,
-  data: ChartsData,
+  statefulData: DataState,
+  labels: {[id: string]: {[id: string]: string}},
 }
 
 export default function CustomChart({
   startTimeMs,
   endTimeMs,
   startFromZero,
-  data,
+  statefulData,
+  labels,
 }: CustomChartProps) {
-  const scales = data.data.map(x => x.unit).filter(unique);
-  const timestampsMs = data.time;
+  // const scales = data.map(x => x.unit).filter(unique);
+  // const timestampsMs = data.time;
+
+  // function doStuff() {
+  //   Object.entries(data).map(([id, { time, data }], index: number) => ({}));
+  // }
+
   const chartsData = {
     labels: [],
-    datasets: data.data.map((entry: ChartEntry, index: number) => ({
-      label: entry.name,
-      data: entry.values.map((value, index) => ({
-        x: timestampsMs[index],
-        y: value,
-      })),
-      borderColor: colors[index].border,
-      backgroundColor: colors[index].background,
-      yAxisID: entry.unit,
-    })),
+    datasets: Object.entries(statefulData)
+      .map(([id, { time, data }], index) =>
+        Object.entries(data).map(([signal, values]) => ({
+          label: labels[id][signal],
+          data: values.map((value, index) => ({
+            x: time[index],
+            y: value,
+          })),
+          borderColor: "",
+          backgroundColor: "",
+          // yAxisID: entry.unit,
+        }))
+      )
+      .flatMap(entry => entry)
+      .map((entry, index) => {
+        entry.borderColor = colors[index].border;
+        entry.backgroundColor = colors[index].background;
+        return entry;
+      }),
   };
 
   const options = {
@@ -97,16 +113,16 @@ export default function CustomChart({
         min: startTimeMs,
         max: endTimeMs,
       },
-      ...Object.fromEntries(scales.map((unit: string) => [`${unit}`, {
-        title: {
-          display: true,
-          text: `[${unit}]`,
-        },
-        type: 'linear' as const,
-        display: true,
-        position: 'left' as const,
-        beginAtZero: startFromZero,
-      }]))
+      // ...Object.fromEntries(scales.map((unit: string) => [`${unit}`, {
+      //   title: {
+      //     display: true,
+      //     text: `[${unit}]`,
+      //   },
+      //   type: 'linear' as const,
+      //   display: true,
+      //   position: 'left' as const,
+      //   beginAtZero: startFromZero,
+      // }]))
     },
   };
 
