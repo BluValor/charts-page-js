@@ -5,6 +5,16 @@ import { TimeSlider, TabPanel, CustomChart } from './components';
 import { FakeDataBank, useDataState, useDataManager } from './Data';
 import 'chartjs-adapter-moment'
 
+
+// export default function App() {
+//   useEffect(() => {
+//     console.log("HERE");
+//   }, []);
+//   return (
+//     <div></div>
+//   );
+// }
+
 export default function App() {
   /*
   device and deviceId could really be mashed together to this "signalId" thing, 
@@ -12,27 +22,19 @@ export default function App() {
   would be cleaner, as only one side of the communication would have to do the weird 
   string to two ints conversion.
   */
-  const serverAddress = "idk, localhost:8888";
-  const startupData = {
+
+  // {"clientIp":"192.168.1.5","device":0,"deviceId":1,"end":"Thu Jan 19 13:27:57 2023","messageType":"getSensorData","signals":[0],"start":"Wed Jan 11 03:51:57 2023"}
+
+  const serverAddress = "ws://localhost:8888";
+  const receivedData = {
     "0-1": {
       device: 0,
       deviceId: 1,
-      signals: ["0"],
+      signals: [0],
       labels: ["Input 1 Voltage - Vab"],
-    },
-    "1-2": {
-      device: 1,
-      deviceId: 2,
-      signals: ["183"],
-      labels: ["Input 2 Current - KWa"],
-    },
-    "0-2": {
-      device: 0,
-      deviceId: 2,
-      signals: ["3", "7"],
-      labels: ["Output Voltage - Van", "Output Voltage - Va %THD-F"],
-    },
+    }
   };
+  const startupData = Object.fromEntries(Object.entries(receivedData).map(([id, info]) => [id, ({...info, signals: info.signals.map(x => x.toString())})]));
   const labels = Object.fromEntries(
     Object.entries(startupData).map(([id, info]) => [
       id,
@@ -43,23 +45,26 @@ export default function App() {
   ); 
 
   // use for web socket data ----------------------------------------------
-  // const data = useDataManager(serverAddress, startupData);
+  const data = useDataManager(serverAddress, startupData);
+  useEffect(() => {
+    console.log("here App")
+  }, []);
   // ----------------------------------------------------------------------
 
   // use for random data --------------------------------------------------
-  const idToSignals = Object.fromEntries(
-    Object.entries(startupData).map(([id, info]) => [id, info.signals])
-  ); 
-  const [data, setNewData] = useDataState(idToSignals);
-  const dataBank = new FakeDataBank(idToSignals);
-  function randomizeData() {
-    dataBank.regenerateData();
-    for (const [id, { time, data }] of Object.entries(dataBank.data))
-      setNewData(id, time, data);
-  };
-  useEffect(() => {
-    randomizeData();
-  }, []);
+  // const idToSignals = Object.fromEntries(
+  //   Object.entries(startupData).map(([id, info]) => [id, info.signals])
+  // ); 
+  // const [data, setNewData] = useDataState(idToSignals);
+  // const dataBank = new FakeDataBank(idToSignals);
+  // function randomizeData() {
+  //   dataBank.regenerateData();
+  //   for (const [id, { time, data }] of Object.entries(dataBank.data))
+  //     setNewData(id, time, data);
+  // };
+  // useEffect(() => {
+  //   randomizeData();
+  // }, []);
   // ----------------------------------------------------------------------
 
   const [firstTimeMs, setFirstTimeMs] = useState(0);
@@ -149,7 +154,7 @@ export default function App() {
               {startFromZero ? "Autoscale" : "Scale From Zero"}
             </Button>
             <Button onClick={onButtonClick}>Send data request</Button>
-            <Button onClick={randomizeData}>Randomize data</Button>
+            {/* <Button onClick={randomizeData}>Randomize data</Button> */}
           </Grid>
         </Grid>
         <Grid container item xs>

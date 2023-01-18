@@ -40,8 +40,6 @@ export function useDataState(idToSignals: IdToSignals): [
   const [data, setData] = useState(createDataStateObject());
   
   function setNewData(id: string, time: number[], data: SignalsToValues) {
-    const minTime = time.reduce((acc, curr) => (curr < acc ? curr : acc));
-    console.log(minTime);
     setData(prevState => ({
       ...prevState,
       [id]: {
@@ -120,6 +118,7 @@ export type SignalDataMessage = {
   signalId: string,
   time: number[],
   data: SignalsToValues,
+  period: number,
 }
 
 export function isSignalDataMessage(toCheck: any): toCheck is SignalDataMessage {
@@ -150,9 +149,12 @@ export function useDataManager(
           "signals": signalInfo.signals,
           "start": startTimeMs,
           "end": endTimeMs,
+          "clientIp": "192.168.1.4" // is it really required?
           // "averagePeriod": 7, // this is resolution, 7 means "30 minutes"
-          "clientIp": "192.168.1.4", // is it really required?
         }
+        
+        console.log(JSON.stringify(message))
+
         webSocket.send(JSON.stringify(message));
       }
     };
@@ -161,15 +163,28 @@ export function useDataManager(
       const jsonData = JSON.parse(event.data);
       if (!isSignalDataMessage(jsonData))
         return;
+      // const currTime = (new Date()).getTime();
+      // const expectedTime = currTime - TimePeriod.WEEK;
+      // const minTime = jsonData.time.reduce(
+      //   (acc, curr) => (curr < acc ? curr : acc), Number.MAX_SAFE_INTEGER);
+      // const m = Number.MAX_SAFE_INTEGER;
+      // const timeLen = jsonData.time.length;
+      // // console.log({currTime, expectedTime, minTime, m, timeLen});
+      // console.log(event.data, jsonData);
       setNewData(jsonData.signalId, jsonData.time, jsonData.data);
     };
   
     webSocket.onerror = () => { };
 
     webSocket.onclose = () => { };
+
+    return webSocket;
   };
 
-  const webSocket = openWebSocket();
+  useEffect(() => {
+    console.log("here")
+    openWebSocket();
+  }, []);
 
   return data;
 }
