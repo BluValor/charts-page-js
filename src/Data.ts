@@ -40,6 +40,8 @@ export function useDataState(idToSignals: IdToSignals): [
   const [data, setData] = useState(createDataStateObject());
   
   function setNewData(id: string, time: number[], data: SignalsToValues) {
+    const minTime = time.reduce((acc, curr) => (curr < acc ? curr : acc));
+    console.log(minTime);
     setData(prevState => ({
       ...prevState,
       [id]: {
