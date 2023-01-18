@@ -103,6 +103,7 @@ export default function CustomChart({
         type: 'time' as const,
         display: true,
         time: {
+          // 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
           unit: 'minute' as const,
         },
         ticks: {
