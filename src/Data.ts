@@ -156,9 +156,10 @@ export function useDataManager(
     };
   
     webSocket.onmessage = (event: MessageEvent) => {
-      if (!isSignalDataMessage(event.data))
+      const jsonData = JSON.parse(event.data);
+      if (!isSignalDataMessage(jsonData))
         return;
-      setNewData(event.data.signalId, event.data.time, event.data.data);
+      setNewData(jsonData.signalId, jsonData.time, jsonData.data);
     };
   
     webSocket.onerror = () => { };
