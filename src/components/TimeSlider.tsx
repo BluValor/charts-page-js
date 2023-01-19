@@ -58,10 +58,6 @@ export default function TimeSlider({
   const [thumbState, setThumbState] = useState(ThumbState.Between);
 
   useEffect(() => {
-    console.log("rerender");
-  }, []);
-
-  useEffect(() => {
     setDataTimeSpan((value[2] - value[0]) / THUMB_VALUE_SPAN);
   }, [value]);
 

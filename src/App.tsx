@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { Grid, Button, Tabs, Tab } from '@mui/material';
 import { TimeSlider, TabPanel, CustomChart } from './components'; 
-import { FakeDataBank, useDataState, useDataManager } from './Data';
+import { FakeDataBank, useDataState, useDataManager, DataState } from './Data';
 import 'chartjs-adapter-moment'
 import internal from 'stream';
 
