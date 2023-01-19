@@ -111,6 +111,7 @@ export type SignalConnectionInfo = {
   deviceId: number,
   signals: string[],
   labels: string[],
+  units: string[],
 }
 
 export type SignalDataMessage = {
@@ -128,7 +129,10 @@ export function isSignalDataMessage(toCheck: any): toCheck is SignalDataMessage 
 export function useDataManager(
   serverAddress: string,
   signalsInfo: { [id: string]: SignalConnectionInfo }
-) {
+): [
+  DataState,
+  (newStartTimeMs: number, newEndTimeMs: number) => void,
+] {
   const idToSignals = Object.fromEntries(
     Object.entries(signalsInfo).map(([id, info]) => [id, info.signals])
   ); 
@@ -152,9 +156,6 @@ export function useDataManager(
           "clientIp": "192.168.1.4" // is it really required?
           // "averagePeriod": 7, // this is resolution, 7 means "30 minutes"
         }
-        
-        console.log(JSON.stringify(message))
-
         webSocket.send(JSON.stringify(message));
       }
     };
@@ -181,12 +182,33 @@ export function useDataManager(
     return webSocket;
   };
 
-  useEffect(() => {
-    console.log("here")
-    openWebSocket();
-  }, []);
+  // useEffect(() => {
+  //   console.log("here")
+  //   openWebSocket();
+  // }, []);
 
-  return data;
+  const webSocket = useRef(openWebSocket());
+
+  function requestTimeframe(newStartTimeMs: number, newEndTimeMs: number) {
+    const startTimeMs = Math.round(newStartTimeMs);
+    const endTimeMs = Math.round(newEndTimeMs);
+
+    for (const signalInfo of Object.values(signalsInfo)) {
+      const message = {
+        "messageType": "getSensorData",
+        "device": signalInfo.device,
+        "deviceId": signalInfo.deviceId,
+        "signals": signalInfo.signals,
+        "start": startTimeMs,
+        "end": endTimeMs,
+        "clientIp": "192.168.1.4" // is it really required?
+        // "averagePeriod": 7, // this is resolution, 7 means "30 minutes"
+      }
+      webSocket.current.send(JSON.stringify(message));
+    }
+  }
+
+  return [data, requestTimeframe];
 }
 
 const exampleResponse = {

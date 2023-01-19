@@ -40,27 +40,27 @@ const colors = [
   background: color + "7F",
 }));
 
-interface CustomChartProps {
-  startTimeMs: number,
-  endTimeMs: number,
+type IdToSignalsToValues = {[id: string]: {[id: string]: string}}
+
+type CustomChartProps = {
   startFromZero: boolean,
   statefulData: DataState,
-  labels: {[id: string]: {[id: string]: string}},
+  labels: IdToSignalsToValues,
+  units: IdToSignalsToValues,
 }
 
 export default function CustomChart({
-  startTimeMs,
-  endTimeMs,
   startFromZero,
   statefulData,
   labels,
+  units,
 }: CustomChartProps) {
-  // const scales = data.map(x => x.unit).filter(unique);
-  // const timestampsMs = data.time;
-
-  // function doStuff() {
-  //   Object.entries(data).map(([id, { time, data }], index: number) => ({}));
-  // }
+  const uniqueUnits = Object.entries(units)
+    .map(([_, signalsToUnits]) =>
+      Object.entries(signalsToUnits).map(([_, units]) => units)
+    )
+    .flatMap((entry) => entry)
+    .filter(unique);
 
   const chartsData = {
     labels: [],
@@ -74,7 +74,7 @@ export default function CustomChart({
           })),
           borderColor: "",
           backgroundColor: "",
-          // yAxisID: entry.unit,
+          yAxisID: units[id][signal],
         }))
       )
       .flatMap(entry => entry)
@@ -111,19 +111,17 @@ export default function CustomChart({
           min: 10,
           max: 20,
         },
-        min: startTimeMs,
-        max: endTimeMs,
       },
-      // ...Object.fromEntries(scales.map((unit: string) => [`${unit}`, {
-      //   title: {
-      //     display: true,
-      //     text: `[${unit}]`,
-      //   },
-      //   type: 'linear' as const,
-      //   display: true,
-      //   position: 'left' as const,
-      //   beginAtZero: startFromZero,
-      // }]))
+      ...Object.fromEntries(uniqueUnits.map((unit: string) => [`${unit}`, {
+        title: {
+          display: true,
+          text: `[${unit}]`,
+        },
+        type: 'linear' as const,
+        display: true,
+        position: 'left' as const,
+        beginAtZero: startFromZero,
+      }]))
     },
   };
 

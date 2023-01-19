@@ -4,6 +4,7 @@ import { Grid, Button, Tabs, Tab } from '@mui/material';
 import { TimeSlider, TabPanel, CustomChart } from './components'; 
 import { FakeDataBank, useDataState, useDataManager } from './Data';
 import 'chartjs-adapter-moment'
+import internal from 'stream';
 
 
 // export default function App() {
@@ -32,9 +33,22 @@ export default function App() {
       deviceId: 1,
       signals: [0],
       labels: ["Input 1 Voltage - Vab"],
-    }
+      units: ["V"],
+    },
+    "0-2": {
+      device: 0,
+      deviceId: 2,
+      signals: [0, 4],
+      labels: ["Input 2 Voltage - Vab", "Input 1 Current - a"],
+      units: ["V", "A"],
+    },
   };
-  const startupData = Object.fromEntries(Object.entries(receivedData).map(([id, info]) => [id, ({...info, signals: info.signals.map(x => x.toString())})]));
+  const startupData = Object.fromEntries(
+    Object.entries(receivedData).map(([id, info]) => [
+      id,
+      { ...info, signals: info.signals.map((x) => x.toString()) },
+    ])
+  );
   const labels = Object.fromEntries(
     Object.entries(startupData).map(([id, info]) => [
       id,
@@ -43,12 +57,17 @@ export default function App() {
       ),
     ])
   ); 
+  const units = Object.fromEntries(
+    Object.entries(startupData).map(([id, info]) => [
+      id,
+      Object.fromEntries(
+        info.signals.map((signal, index) => [signal, info.units[index]])
+      ),
+    ])
+  ); 
 
   // use for web socket data ----------------------------------------------
-  const data = useDataManager(serverAddress, startupData);
-  useEffect(() => {
-    console.log("here App")
-  }, []);
+  const [data, requestTimeframe] = useDataManager(serverAddress, startupData);
   // ----------------------------------------------------------------------
 
   // use for random data --------------------------------------------------
@@ -67,10 +86,10 @@ export default function App() {
   // }, []);
   // ----------------------------------------------------------------------
 
-  const [firstTimeMs, setFirstTimeMs] = useState(0);
-  const [lastTimeMs, setLastTimeMs] = useState(0); 
-  const [startTimeMs, setStartTimeMs] = useState(firstTimeMs);
-  const [endTimeMs, setEndTimeMs] = useState(lastTimeMs);
+
+  const initRef = useRef(false);
+  const [dataFirstTimeMs, setDataFirstTimeMs] = useState({ start: 0, end: 0 });
+
   const [startFromZero, setStarFromZero] = useState(false);
   const [selectedTab, setSelectedTab] = useState(0);
 
@@ -79,6 +98,11 @@ export default function App() {
   };
 
   useEffect(() => {
+    function hasData() {
+      return Object.values(data).reduce((acc, curr) => {
+        return acc ? acc : curr.time.length > 0;
+      }, false);
+    }
     function getFirstTimeMs() {
       return Object.values(data).reduce((acc, curr) => {
         const firstTime = curr.time[0];
@@ -91,28 +115,12 @@ export default function App() {
         return lastTime > acc ? lastTime : acc;
       }, 0);
     }
-    setFirstTimeMs(getFirstTimeMs());
-    setLastTimeMs(getLastTimeMs());
+    
+    if (!initRef.current && hasData()) {
+      setDataFirstTimeMs({ start: getFirstTimeMs(), end: getLastTimeMs() });
+      initRef.current = true;
+    }
   }, [data]);
-
-  function onButtonClick() {
-    // chartWebSocket.onmessage = (event) => {
-    //   console.log(event.data);
-    // }
-    // console.log("State: " + chartWebSocket.readyState);
-    // console.log("Button clicked");
-    // const x = {
-    //   "averagePeriod": 7,
-    //   "clientIp": "192.168.1.4",
-    //   "device": 0,
-    //   "deviceId": 1,
-    //   "end": "Sat Jan 14 13:19:59 2023",
-    //   "messageType": "getSensorData",
-    //   "signals": [0, 1],
-    //   "start": "Fri Jan 6 03:43:59 2023"
-    // }
-    // chartWebSocket.send(JSON.stringify(x));
-  }
 
   return (
     <Grid container padding={6} height="100vh">
@@ -153,18 +161,16 @@ export default function App() {
             <Button onClick={() => setStarFromZero(!startFromZero)}>
               {startFromZero ? "Autoscale" : "Scale From Zero"}
             </Button>
-            <Button onClick={onButtonClick}>Send data request</Button>
             {/* <Button onClick={randomizeData}>Randomize data</Button> */}
           </Grid>
         </Grid>
         <Grid container item xs>
           <TabPanel value={selectedTab} index={0}>
             <CustomChart
-              startTimeMs={startTimeMs}
-              endTimeMs={endTimeMs}
               startFromZero={startFromZero}
               statefulData={data}
               labels={labels}
+              units={units}
             />
           </TabPanel>
           <TabPanel value={selectedTab} index={1}>
@@ -173,10 +179,15 @@ export default function App() {
         </Grid>
         <Grid item>
           <TimeSlider
-            onChange={(start, end) => {
-              const timeDiff = lastTimeMs - firstTimeMs;
-              setStartTimeMs(firstTimeMs + timeDiff * (start / 100));
-              setEndTimeMs(firstTimeMs + timeDiff * (end / 100));
+            dataStartTimeMs={dataFirstTimeMs.start}
+            dataEndTimeMs={dataFirstTimeMs.end}
+            maxTimeMs={dataFirstTimeMs.end}
+            disabled={!initRef.current}
+            onChange={newTimeMs => {
+              console.log(newTimeMs.start, newTimeMs.end)
+              // setDataTimeMs(newTimeMs);
+              requestTimeframe(newTimeMs.start, newTimeMs.end);
+              // randomizeData();
             }}
           />
         </Grid>
