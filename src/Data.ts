@@ -154,7 +154,6 @@ export function useDataManager(
           "start": startTimeMs,
           "end": endTimeMs,
           "clientIp": "192.168.1.4" // is it really required?
-          // "averagePeriod": 7, // this is resolution, 7 means "30 minutes"
         }
         webSocket.send(JSON.stringify(message));
       }
@@ -164,14 +163,6 @@ export function useDataManager(
       const jsonData = JSON.parse(event.data);
       if (!isSignalDataMessage(jsonData))
         return;
-      // const currTime = (new Date()).getTime();
-      // const expectedTime = currTime - TimePeriod.WEEK;
-      // const minTime = jsonData.time.reduce(
-      //   (acc, curr) => (curr < acc ? curr : acc), Number.MAX_SAFE_INTEGER);
-      // const m = Number.MAX_SAFE_INTEGER;
-      // const timeLen = jsonData.time.length;
-      // // console.log({currTime, expectedTime, minTime, m, timeLen});
-      // console.log(event.data, jsonData);
       setNewData(jsonData.signalId, jsonData.time, jsonData.data);
     };
   
@@ -202,7 +193,6 @@ export function useDataManager(
         "start": startTimeMs,
         "end": endTimeMs,
         "clientIp": "192.168.1.4" // is it really required?
-        // "averagePeriod": 7, // this is resolution, 7 means "30 minutes"
       }
       webSocket.current.send(JSON.stringify(message));
     }

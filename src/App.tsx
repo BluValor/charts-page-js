@@ -6,16 +6,6 @@ import { FakeDataBank, useDataState, useDataManager } from './Data';
 import 'chartjs-adapter-moment'
 import internal from 'stream';
 
-
-// export default function App() {
-//   useEffect(() => {
-//     console.log("HERE");
-//   }, []);
-//   return (
-//     <div></div>
-//   );
-// }
-
 export default function App() {
   /*
   device and deviceId could really be mashed together to this "signalId" thing, 
@@ -185,7 +175,6 @@ export default function App() {
             disabled={!initRef.current}
             onChange={newTimeMs => {
               console.log(newTimeMs.start, newTimeMs.end)
-              // setDataTimeMs(newTimeMs);
               requestTimeframe(newTimeMs.start, newTimeMs.end);
               // randomizeData();
             }}
