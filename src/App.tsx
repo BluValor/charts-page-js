@@ -14,27 +14,57 @@ export default function App() {
   string to two ints conversion.
   */
 
-  // {"clientIp":"192.168.1.5","device":0,"deviceId":1,"end":"Thu Jan 19 13:27:57 2023","messageType":"getSensorData","signals":[0],"start":"Wed Jan 11 03:51:57 2023"}
-
-  const serverAddress = "ws://localhost:8888";
-  const receivedData = {
-    "0-1": {
-      device: 0,
-      deviceId: 1,
-      signals: [0],
-      labels: ["Input 1 Voltage - Vab"],
-      units: ["V"],
-    },
-    "0-2": {
-      device: 0,
-      deviceId: 2,
-      signals: [0, 4],
-      labels: ["Input 2 Voltage - Vab", "Input 1 Current - a"],
-      units: ["V", "A"],
-    },
+  type ChartMetadata = {
+    [id: string]: {
+      device: number;
+      deviceId: number;
+      signals: number[];
+      labels: string[];
+      units: string[];
+    };
   };
+
+  function getServerAddress(): string {
+    const serverAddressString = sessionStorage.getItem("serverAddress");
+    sessionStorage.removeItem("serverAddress");
+    return serverAddressString !== null ? serverAddressString : "";
+  }
+
+  function getChartMetadata(): ChartMetadata {
+    const chartMetadataString = sessionStorage.getItem("chartMetadata");
+    sessionStorage.removeItem("chartMetadata");
+    return chartMetadataString !== null
+      ? (JSON.parse(chartMetadataString) as ChartMetadata)
+      : {};
+  }
+
+  const [serverAddress, setServerAddress] = useState<string>(() =>
+    getServerAddress()
+  );
+  const [chartMetadata, setChartMetadata] = useState<ChartMetadata>(() =>
+    getChartMetadata()
+  );
+
+  // const serverAddress = "ws://localhost:8888";
+  // const chartMetadata = {
+  //   "0-1": {
+  //     device: 0,
+  //     deviceId: 1,
+  //     signals: [0],
+  //     labels: ["Input 1 Voltage - Vab"],
+  //     units: ["V"],
+  //   },
+  //   "0-2": {
+  //     device: 0,
+  //     deviceId: 2,
+  //     signals: [0, 4],
+  //     labels: ["Input 2 Voltage - Vab", "Input 1 Current - a"],
+  //     units: ["V", "A"],
+  //   },
+  // };  
+
   const startupData = Object.fromEntries(
-    Object.entries(receivedData).map(([id, info]) => [
+    Object.entries(chartMetadata).map(([id, info]) => [
       id,
       { ...info, signals: info.signals.map((x) => x.toString()) },
     ])
