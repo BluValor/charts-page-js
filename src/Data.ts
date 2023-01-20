@@ -135,58 +135,62 @@ export function useDataManager(
 ] {
   const idToSignals = Object.fromEntries(
     Object.entries(signalsInfo).map(([id, info]) => [id, info.signals])
-  ); 
+  );
   const [data, setNewData] = useDataState(idToSignals);
 
-  function queryData(webSocket: WebSocket, startTimeMs: number, endTimeMs: number){
+  function queryData(
+    webSocket: WebSocket,
+    startTimeMs: number,
+    endTimeMs: number
+  ) {
     const startTimeMsInt = Math.round(startTimeMs);
     const endTimeMsInt = Math.round(endTimeMs);
 
     for (const signalInfo of Object.values(signalsInfo)) {
       const message = {
-        "messageType": "getSensorData",
-        "device": signalInfo.device,
-        "deviceId": signalInfo.deviceId,
-        "signals": signalInfo.signals,
-        "start": startTimeMsInt,
-        "end": endTimeMsInt,
-        "clientIp": "192.168.1.4" // is it really required?
-      }
+        messageType: "getSensorData",
+        device: signalInfo.device,
+        deviceId: signalInfo.deviceId,
+        signals: signalInfo.signals.map((signal) => parseInt(signal)),
+        start: startTimeMsInt,
+        end: endTimeMsInt,
+        clientIp: "192.168.1.4", // is it really required?
+      };
       webSocket.send(JSON.stringify(message));
+      console.log(message);
     }
-  };
+  }
 
   const webSocket = useRef<WebSocket | null>(null);
-  useEffect(() => { 
+  useEffect(() => {
     function openWebSocket() {
       const webSocket = new WebSocket(serverAddress);
-  
+
       webSocket.onopen = () => {
-        const endTimeMs = (new Date()).getTime();
+        const endTimeMs = new Date().getTime();
         const startTimeMs = endTimeMs - TimePeriod.WEEK;
         queryData(webSocket, startTimeMs, endTimeMs);
       };
-    
+
       webSocket.onmessage = (event: MessageEvent) => {
         const jsonData = JSON.parse(event.data);
-        if (!isSignalDataMessage(jsonData))
-          return;
+        console.log(jsonData);
+        if (!isSignalDataMessage(jsonData)) return;
         setNewData(jsonData.signalId, jsonData.time, jsonData.data);
       };
-    
-      webSocket.onerror = () => { };
-  
-      webSocket.onclose = () => { };
-  
+
+      webSocket.onerror = () => {};
+
+      webSocket.onclose = () => {};
+
       return webSocket;
-    };
+    }
 
     webSocket.current = openWebSocket();
   }, []);
 
   function requestTimeframe(newStartTimeMs: number, newEndTimeMs: number) {
-    if (webSocket.current === null)
-      return;
+    if (webSocket.current === null) return;
     queryData(webSocket.current, newStartTimeMs, newEndTimeMs);
   }
 

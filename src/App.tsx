@@ -25,12 +25,44 @@ export default function App() {
   };
 
   function getServerAddress(): string {
+    // sessionStorage.setItem("serverAddress", "ws://localhost:8888");
     const serverAddressString = sessionStorage.getItem("serverAddress");
     sessionStorage.removeItem("serverAddress");
     return serverAddressString !== null ? serverAddressString : "";
   }
 
   function getChartMetadata(): ChartMetadata {
+    // sessionStorage.setItem("chartMetadata", JSON.stringify({
+    //   "0-1": {
+    //     device: 0,
+    //     deviceId: 1,
+    //     signals: [0, 1, 2],
+    //     labels: [
+    //       "Input 1 Voltage - Vab",
+    //       "Input 1 Voltage - Vbc",
+    //       "Input 1 Voltage - Vca",
+    //     ],
+    //     units: ["V", "V", "V"],
+    //   },
+    //   "1-2": {
+    //     device: 1,
+    //     deviceId: 2,
+    //     signals: [0, 1, 2],
+    //     labels: [
+    //       "Input 2 Current - Ia",
+    //       "Input 2 Current - Ib",
+    //       "Input 2 Current - Ic",
+    //     ],
+    //     units: ["A", "A", "A"],
+    //   },
+    //   // "0-2": {
+    //   //   device: 0,
+    //   //   deviceId: 2,
+    //   //   signals: [5],
+    //   //   labels: ["Output Voltage - Vcn"],
+    //   //   units: ["V"],
+    //   // },
+    // }));
     const chartMetadataString = sessionStorage.getItem("chartMetadata");
     sessionStorage.removeItem("chartMetadata");
     return chartMetadataString !== null
@@ -45,30 +77,13 @@ export default function App() {
     getChartMetadata()
   );
 
-  // const serverAddress = "ws://localhost:8888";
-  // const chartMetadata = {
-  //   "0-1": {
-  //     device: 0,
-  //     deviceId: 1,
-  //     signals: [0],
-  //     labels: ["Input 1 Voltage - Vab"],
-  //     units: ["V"],
-  //   },
-  //   "0-2": {
-  //     device: 0,
-  //     deviceId: 2,
-  //     signals: [0, 4],
-  //     labels: ["Input 2 Voltage - Vab", "Input 1 Current - a"],
-  //     units: ["V", "A"],
-  //   },
-  // };  
-
   const startupData = Object.fromEntries(
     Object.entries(chartMetadata).map(([id, info]) => [
       id,
       { ...info, signals: info.signals.map((x) => x.toString()) },
     ])
   );
+
   const labels = Object.fromEntries(
     Object.entries(startupData).map(([id, info]) => [
       id,
@@ -105,7 +120,6 @@ export default function App() {
   //   randomizeData();
   // }, []);
   // ----------------------------------------------------------------------
-
 
   const initRef = useRef(false);
   const [dataFirstTimeMs, setDataFirstTimeMs] = useState({ start: 0, end: 0 });
