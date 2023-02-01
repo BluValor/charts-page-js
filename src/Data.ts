@@ -99,12 +99,28 @@ export class FakeDataBank {
   }
 }
 
-enum TimePeriod {
+enum TimeSpan {
   HOUR = 60 * 60 * 1000,
-  DAY = TimePeriod.HOUR * 24,
-  WEEK = TimePeriod.DAY * 7,
-  MONTH = TimePeriod.DAY * 30,
+  DAY = TimeSpan.HOUR * 24,
+  WEEK = TimeSpan.DAY * 7,
+  MONTH = TimeSpan.DAY * 30,
 }
+
+export enum TimePeriod {
+  RAW = 0,
+  SECOND = 1,
+  FIVE_SECONDS = 2,
+  TEN_SECONDS = 3,
+  THIRTY_SECONDS = 4,
+  MINUTE = 5,
+  TEN_MINUTES = 6,
+  THIRTY_MINUTES = 7,
+  HOUR = 8,
+  TWELVE_HOURS = 9,
+  DAY = 10,
+  WEEK = 11,
+  MONTH = 12,
+} 
 
 export type SignalConnectionInfo = {
   device: number,
@@ -119,7 +135,7 @@ export type SignalDataMessage = {
   signalId: string,
   time: number[],
   data: SignalsToValues,
-  period: number,
+  period: TimePeriod,
 }
 
 export function isSignalDataMessage(toCheck: any): toCheck is SignalDataMessage {
@@ -132,11 +148,13 @@ export function useDataManager(
 ): [
   DataState,
   (newStartTimeMs: number, newEndTimeMs: number) => void,
+  TimePeriod,
 ] {
   const idToSignals = Object.fromEntries(
     Object.entries(signalsInfo).map(([id, info]) => [id, info.signals])
   );
   const [data, setNewData] = useDataState(idToSignals);
+  const [period, setPeriod] = useState(TimePeriod.HOUR);
 
   function queryData(
     webSocket: WebSocket,
@@ -168,7 +186,7 @@ export function useDataManager(
 
       webSocket.onopen = () => {
         const endTimeMs = new Date().getTime();
-        const startTimeMs = endTimeMs - TimePeriod.WEEK;
+        const startTimeMs = endTimeMs - TimeSpan.WEEK;
         queryData(webSocket, startTimeMs, endTimeMs);
       };
 
@@ -177,6 +195,7 @@ export function useDataManager(
         console.log(jsonData);
         if (!isSignalDataMessage(jsonData)) return;
         setNewData(jsonData.signalId, jsonData.time, jsonData.data);
+        setPeriod(jsonData.period);
       };
 
       webSocket.onerror = () => {};
@@ -194,7 +213,7 @@ export function useDataManager(
     queryData(webSocket.current, newStartTimeMs, newEndTimeMs);
   }
 
-  return [data, requestTimeframe];
+  return [data, requestTimeframe, period];
 }
 
 const exampleResponse = {

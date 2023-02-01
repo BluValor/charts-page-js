@@ -3,6 +3,7 @@ import './App.css';
 import { Grid, Button, Tabs, Tab } from '@mui/material';
 import { TimeSlider, TabPanel, CustomChart } from './components'; 
 import { FakeDataBank, useDataState, useDataManager, DataState } from './Data';
+import { timestampMsToDateString } from './Utils';
 import 'chartjs-adapter-moment'
 import internal from 'stream';
 
@@ -25,44 +26,44 @@ export default function App() {
   };
 
   function getServerAddress(): string {
-    // sessionStorage.setItem("serverAddress", "ws://localhost:8888");
+    sessionStorage.setItem("serverAddress", "ws://localhost:8888");
     const serverAddressString = sessionStorage.getItem("serverAddress");
     sessionStorage.removeItem("serverAddress");
     return serverAddressString !== null ? serverAddressString : "";
   }
 
   function getChartMetadata(): ChartMetadata {
-    // sessionStorage.setItem("chartMetadata", JSON.stringify({
-    //   "0-1": {
-    //     device: 0,
-    //     deviceId: 1,
-    //     signals: [0, 1, 2],
-    //     labels: [
-    //       "Input 1 Voltage - Vab",
-    //       "Input 1 Voltage - Vbc",
-    //       "Input 1 Voltage - Vca",
-    //     ],
-    //     units: ["V", "V", "V"],
-    //   },
-    //   "1-2": {
-    //     device: 1,
-    //     deviceId: 2,
-    //     signals: [0, 1, 2],
-    //     labels: [
-    //       "Input 2 Current - Ia",
-    //       "Input 2 Current - Ib",
-    //       "Input 2 Current - Ic",
-    //     ],
-    //     units: ["A", "A", "A"],
-    //   },
-    //   // "0-2": {
-    //   //   device: 0,
-    //   //   deviceId: 2,
-    //   //   signals: [5],
-    //   //   labels: ["Output Voltage - Vcn"],
-    //   //   units: ["V"],
-    //   // },
-    // }));
+    sessionStorage.setItem("chartMetadata", JSON.stringify({
+      "0-1": {
+        device: 0,
+        deviceId: 1,
+        signals: [0, 1, 2],
+        labels: [
+          "Input 1 Voltage - Vab",
+          "Input 1 Voltage - Vbc",
+          "Input 1 Voltage - Vca",
+        ],
+        units: ["V", "V", "V"],
+      },
+      "1-2": {
+        device: 1,
+        deviceId: 2,
+        signals: [0, 1, 2],
+        labels: [
+          "Input 2 Current - Ia",
+          "Input 2 Current - Ib",
+          "Input 2 Current - Ic",
+        ],
+        units: ["A", "A", "A"],
+      },
+      // "0-2": {
+      //   device: 0,
+      //   deviceId: 2,
+      //   signals: [5],
+      //   labels: ["Output Voltage - Vcn"],
+      //   units: ["V"],
+      // },
+    }));
     const chartMetadataString = sessionStorage.getItem("chartMetadata");
     sessionStorage.removeItem("chartMetadata");
     return chartMetadataString !== null
@@ -102,7 +103,7 @@ export default function App() {
   ); 
 
   // use for web socket data ----------------------------------------------
-  const [data, requestTimeframe] = useDataManager(serverAddress, startupData);
+  const [data, requestTimeframe, period] = useDataManager(serverAddress, startupData);
   // ----------------------------------------------------------------------
 
   // use for random data --------------------------------------------------
@@ -123,6 +124,10 @@ export default function App() {
 
   const initRef = useRef(false);
   const [dataFirstTimeMs, setDataFirstTimeMs] = useState({ start: 0, end: 0 });
+  const [currentDataFirstTimeMs, setCurrentDataFirstTimeMs] = useState({
+    start: 0,
+    end: 0,
+  });
 
   const [startFromZero, setStarFromZero] = useState(false);
   const [selectedTab, setSelectedTab] = useState(0);
@@ -150,10 +155,15 @@ export default function App() {
       }, 0);
     }
     
+    const start = getFirstTimeMs();
+    const end = getLastTimeMs();
+
     if (!initRef.current && hasData()) {
-      setDataFirstTimeMs({ start: getFirstTimeMs(), end: getLastTimeMs() });
+      setDataFirstTimeMs({ start: start, end:  end});
       initRef.current = true;
     }
+
+    setCurrentDataFirstTimeMs({ start: start, end:  end});
   }, [data]);
 
   return (
@@ -163,7 +173,7 @@ export default function App() {
           <Grid
             container
             item
-            xs={4}
+            xs={2}
             justifyContent="flex-start"
             alignItems="center"
           >
@@ -179,16 +189,19 @@ export default function App() {
           <Grid
             container
             item
-            xs={4}
+            xs={8}
             justifyContent="center"
             alignItems="center"
           >
-            ?
+            {`${timestampMsToDateString(
+              currentDataFirstTimeMs.start
+            )} - ${timestampMsToDateString(
+              currentDataFirstTimeMs.end)}`}
           </Grid>
           <Grid
             container
             item
-            xs={4}
+            xs={2}
             justifyContent="flex-end"
             alignItems="center"
           >
@@ -205,6 +218,7 @@ export default function App() {
               statefulData={data}
               labels={labels}
               units={units}
+              period={period}
             />
           </TabPanel>
           <TabPanel value={selectedTab} index={1}>
@@ -217,8 +231,8 @@ export default function App() {
             dataEndTimeMs={dataFirstTimeMs.end}
             maxTimeMs={dataFirstTimeMs.end}
             disabled={!initRef.current}
-            onChange={newTimeMs => {
-              console.log(newTimeMs.start, newTimeMs.end)
+            onChange={(newTimeMs) => {
+              console.log(newTimeMs.start, newTimeMs.end);
               requestTimeframe(newTimeMs.start, newTimeMs.end);
               // randomizeData();
             }}

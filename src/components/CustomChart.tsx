@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Chart as ChartJS,
   TimeScale,
@@ -8,10 +8,11 @@ import {
   Title,
   Tooltip,
   Legend,
+  TimeUnit,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import 'chartjs-adapter-moment'
-import { DataState } from '../Data';
+import { DataState, TimePeriod } from '../Data';
 
 ChartJS.register(
   TimeScale,
@@ -40,6 +41,22 @@ const colors = [
   background: color + "7F",
 }));
 
+const timeUnits: TimeUnit[] = [
+  'millisecond',
+  'second',
+  'minute',
+  'minute',
+  'minute',
+  'minute',
+  'hour',
+  'day',
+  'day',
+  'day',
+  'day',
+  'week',
+  'month',
+]
+
 type IdToSignalsToValues = {[id: string]: {[id: string]: string}}
 
 type CustomChartProps = {
@@ -47,6 +64,7 @@ type CustomChartProps = {
   statefulData: DataState,
   labels: IdToSignalsToValues,
   units: IdToSignalsToValues,
+  period: TimePeriod,
 }
 
 export default function CustomChart({
@@ -54,6 +72,7 @@ export default function CustomChart({
   statefulData,
   labels,
   units,
+  period
 }: CustomChartProps) {
   const uniqueUnits = Object.entries(units)
     .map(([_, signalsToUnits]) =>
@@ -103,8 +122,7 @@ export default function CustomChart({
         type: 'time' as const,
         display: true,
         time: {
-          // 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'quarter' | 'year';
-          unit: 'minute' as const,
+          unit: timeUnits[period],
         },
         ticks: {
           padding: 20,

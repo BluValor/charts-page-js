@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Slider from '@mui/material/Slider';
+import { timestampMsToDateString } from '../Utils';
 
 enum ThumbState {
   Between,
@@ -82,25 +83,6 @@ export default function TimeSlider({
   }
 
   const minDistance = 10;
-
-  function labelText(thumbValue: number) {
-    switch (thumbState) {
-      case ThumbState.Between:
-        return thumbValue;
-      case ThumbState.ZoomInLeft:
-        return "ZOOM IN (left)";
-      case ThumbState.ZoomInRight:
-        return "ZOOM IN (right)";
-      case ThumbState.ZoomOutLeft:
-        return "ZOOM OUT (left)";
-      case ThumbState.ZoomOutRight:
-        return "ZOOM OUT (right)";
-      case ThumbState.MoveLeft:
-        return "MOVE LEFT";
-      case ThumbState.MoveRight:
-        return "MOVE RIGHT";
-    }
-  }
 
   const handleChange = (
     event: Event,
@@ -225,6 +207,15 @@ export default function TimeSlider({
         break;
     }
 
+    newBoundaryTimeMs = {
+      start: newBoundaryTimeMs.start,
+      end: newBoundaryTimeMs.end > maxTimeMs ? maxTimeMs : newBoundaryTimeMs.end,
+    }
+    newTimeMs = {
+      start: newTimeMs.start,
+      end: newTimeMs.end > maxTimeMs ? maxTimeMs : newTimeMs.end,
+    }
+
     setBoundaryTimeMs(newBoundaryTimeMs);
     setValue([
       getBoundedThumbValue(
@@ -244,6 +235,25 @@ export default function TimeSlider({
       ),
     ]);
     onChange(newTimeMs);
+  }
+
+  function labelText(thumbValue: number) {
+    switch (thumbState) {
+      case ThumbState.Between:
+        return timestampMsToDateString(getTimeForThumbValue(thumbValue));
+      case ThumbState.ZoomInLeft:
+        return "ZOOM IN (left)";
+      case ThumbState.ZoomInRight:
+        return "ZOOM IN (right)";
+      case ThumbState.ZoomOutLeft:
+        return "ZOOM OUT (left)";
+      case ThumbState.ZoomOutRight:
+        return "ZOOM OUT (right)";
+      case ThumbState.MoveLeft:
+        return "MOVE LEFT";
+      case ThumbState.MoveRight:
+        return "MOVE RIGHT";
+    }
   }
 
   return (
