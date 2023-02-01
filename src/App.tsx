@@ -229,7 +229,6 @@ export default function App() {
           <TimeSlider
             dataStartTimeMs={dataFirstTimeMs.start}
             dataEndTimeMs={dataFirstTimeMs.end}
-            maxTimeMs={dataFirstTimeMs.end}
             disabled={!initRef.current}
             onChange={(newTimeMs) => {
               console.log(newTimeMs.start, newTimeMs.end);

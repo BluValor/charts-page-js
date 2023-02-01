@@ -17,7 +17,6 @@ type TimeRange = { start: number, end: number };
 interface TimeSliderProps {
   dataStartTimeMs: number,
   dataEndTimeMs: number,
-  maxTimeMs: number,
   onChange: (newTimeMs: { start: number, end: number }) => void, 
   disabled: boolean,
 }
@@ -25,7 +24,6 @@ interface TimeSliderProps {
 export default function TimeSlider({
   dataStartTimeMs,
   dataEndTimeMs,
-  maxTimeMs,
   onChange,
   disabled,
 }: TimeSliderProps) {
@@ -207,13 +205,14 @@ export default function TimeSlider({
         break;
     }
 
+    const currentTimeMs = new Date().getTime();
     newBoundaryTimeMs = {
       start: newBoundaryTimeMs.start,
-      end: newBoundaryTimeMs.end > maxTimeMs ? maxTimeMs : newBoundaryTimeMs.end,
+      end: newBoundaryTimeMs.end > currentTimeMs ? currentTimeMs : newBoundaryTimeMs.end,
     }
     newTimeMs = {
       start: newTimeMs.start,
-      end: newTimeMs.end > maxTimeMs ? maxTimeMs : newTimeMs.end,
+      end: newTimeMs.end > currentTimeMs ? currentTimeMs : newTimeMs.end,
     }
 
     setBoundaryTimeMs(newBoundaryTimeMs);
