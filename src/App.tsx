@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { Grid, Button, Tabs, Tab } from '@mui/material';
-import { TimeSlider, TabPanel, CustomChart } from './components'; 
+import { TimeSlider, TabPanel, CustomChart, CustomTable } from './components'; 
 import { FakeDataBank, useDataState, useDataManager, DataState } from './Data';
 import { timestampMsToDateString } from './Utils';
 import 'chartjs-adapter-moment'
-import internal from 'stream';
 
 export default function App() {
   /*
@@ -26,44 +25,44 @@ export default function App() {
   };
 
   function getServerAddress(): string {
-    sessionStorage.setItem("serverAddress", "ws://localhost:8888");
+    // sessionStorage.setItem("serverAddress", "ws://localhost:8888");
     const serverAddressString = sessionStorage.getItem("serverAddress");
     sessionStorage.removeItem("serverAddress");
     return serverAddressString !== null ? serverAddressString : "";
   }
 
   function getChartMetadata(): ChartMetadata {
-    sessionStorage.setItem("chartMetadata", JSON.stringify({
-      "0-1": {
-        device: 0,
-        deviceId: 1,
-        signals: [0, 1, 2],
-        labels: [
-          "Input 1 Voltage - Vab",
-          "Input 1 Voltage - Vbc",
-          "Input 1 Voltage - Vca",
-        ],
-        units: ["V", "V", "V"],
-      },
-      "1-2": {
-        device: 1,
-        deviceId: 2,
-        signals: [0, 1, 2],
-        labels: [
-          "Input 2 Current - Ia",
-          "Input 2 Current - Ib",
-          "Input 2 Current - Ic",
-        ],
-        units: ["A", "A", "A"],
-      },
-      // "0-2": {
-      //   device: 0,
-      //   deviceId: 2,
-      //   signals: [5],
-      //   labels: ["Output Voltage - Vcn"],
-      //   units: ["V"],
-      // },
-    }));
+    // sessionStorage.setItem("chartMetadata", JSON.stringify({
+    //   "0-1": {
+    //     device: 0,
+    //     deviceId: 1,
+    //     signals: [0, 1, 2],
+    //     labels: [
+    //       "Input 1 Voltage - Vab",
+    //       "Input 1 Voltage - Vbc",
+    //       "Input 1 Voltage - Vca",
+    //     ],
+    //     units: ["V", "V", "V"],
+    //   },
+    //   "1-2": {
+    //     device: 1,
+    //     deviceId: 2,
+    //     signals: [0, 1, 2],
+    //     labels: [
+    //       "Input 2 Current - Ia",
+    //       "Input 2 Current - Ib",
+    //       "Input 2 Current - Ic",
+    //     ],
+    //     units: ["A", "A", "A"],
+    //   },
+    //   // "0-2": {
+    //   //   device: 0,
+    //   //   deviceId: 2,
+    //   //   signals: [5],
+    //   //   labels: ["Output Voltage - Vcn"],
+    //   //   units: ["V"],
+    //   // },
+    // }));
     const chartMetadataString = sessionStorage.getItem("chartMetadata");
     sessionStorage.removeItem("chartMetadata");
     return chartMetadataString !== null
@@ -159,11 +158,11 @@ export default function App() {
     const end = getLastTimeMs();
 
     if (!initRef.current && hasData()) {
-      setDataFirstTimeMs({ start: start, end:  end});
+      setDataFirstTimeMs({ start: start, end: end});
       initRef.current = true;
     }
 
-    setCurrentDataFirstTimeMs({ start: start, end:  end});
+    setCurrentDataFirstTimeMs({ start: start, end: end});
   }, [data]);
 
   return (
@@ -173,7 +172,7 @@ export default function App() {
           <Grid
             container
             item
-            xs={2}
+            xs={3}
             justifyContent="flex-start"
             alignItems="center"
           >
@@ -189,23 +188,25 @@ export default function App() {
           <Grid
             container
             item
-            xs={8}
+            xs={6}
             justifyContent="center"
             alignItems="center"
           >
             {`${timestampMsToDateString(
               currentDataFirstTimeMs.start
-            )} - ${timestampMsToDateString(
-              currentDataFirstTimeMs.end)}`}
+            )} - ${timestampMsToDateString(currentDataFirstTimeMs.end)}`}
           </Grid>
           <Grid
             container
             item
-            xs={2}
+            xs={3}
             justifyContent="flex-end"
             alignItems="center"
           >
-            <Button onClick={() => setStarFromZero(!startFromZero)}>
+            <Button
+              onClick={() => setStarFromZero(!startFromZero)}
+              sx={{ display: selectedTab !== 0 ? "none" : "" }}
+            >
               {startFromZero ? "Autoscale" : "Scale From Zero"}
             </Button>
             {/* <Button onClick={randomizeData}>Randomize data</Button> */}
@@ -222,7 +223,12 @@ export default function App() {
             />
           </TabPanel>
           <TabPanel value={selectedTab} index={1}>
-            Item Two
+            <CustomTable
+              startFromZero={startFromZero}
+              statefulData={data}
+              labels={labels}
+              units={units}
+            />
           </TabPanel>
         </Grid>
         <Grid item>
@@ -231,7 +237,6 @@ export default function App() {
             dataEndTimeMs={dataFirstTimeMs.end}
             disabled={!initRef.current}
             onChange={(newTimeMs) => {
-              console.log(newTimeMs.start, newTimeMs.end);
               requestTimeframe(newTimeMs.start, newTimeMs.end);
               // randomizeData();
             }}

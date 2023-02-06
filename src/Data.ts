@@ -1,8 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import internal from "stream";
-import { JsxAttributeValue } from "typescript";
+import { useState, useEffect, useRef } from 'react';
 import { faker } from '@faker-js/faker';
-import { sign } from "crypto";
 
 type Signals = string[];
 
@@ -175,7 +172,6 @@ export function useDataManager(
         clientIp: "192.168.1.4", // is it really required?
       };
       webSocket.send(JSON.stringify(message));
-      console.log(message);
     }
   }
 
@@ -192,7 +188,6 @@ export function useDataManager(
 
       webSocket.onmessage = (event: MessageEvent) => {
         const jsonData = JSON.parse(event.data);
-        console.log(jsonData);
         if (!isSignalDataMessage(jsonData)) return;
         setNewData(jsonData.signalId, jsonData.time, jsonData.data);
         setPeriod(jsonData.period);
