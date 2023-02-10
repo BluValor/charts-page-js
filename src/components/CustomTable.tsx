@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
 import { DataState } from '../Data';
 import { timestampMsToDateString } from '../Utils';
-import { round } from 'lodash';
 
 type RowData = {
   id: number,
@@ -93,7 +92,6 @@ export default function CustomTable({
       // width: 130,
       flex: 1,
       sortable: false,
-      // valueGetter: (params: GridValueGetterParams) => `${round(params.row.data[i] as number, 2)}`,   
       valueGetter: (params: GridValueGetterParams) => (params.row.data[i] as number).toFixed(2),
 
     })),
