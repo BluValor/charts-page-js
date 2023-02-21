@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import Slider from '@mui/material/Slider';
+import Slider, { SliderThumb } from '@mui/material/Slider';
+import { styled } from "@mui/material/styles";
 import { timestampMsToDateString } from '../Utils';
+import clsx from "clsx";
 
 enum ThumbState {
   Between,
@@ -13,6 +15,27 @@ enum ThumbState {
 }
 
 type TimeRange = { start: number, end: number };
+
+const StyledSlider = styled(Slider)(({ theme }) => ({
+  "& .MuiSlider-thumb": {
+    "&.middle-thumb": {
+      opacity: 0,
+      // "&:hover": {
+      // }
+    }
+  },
+}));
+
+function StyledThumbComponent(props: any) {
+  const { children, className, ...other } = props;
+  const extraClassName =
+    other["data-index"] === 1 ? "middle-thumb" : "";
+  return (
+    <SliderThumb {...other} className={clsx(className, extraClassName)}>
+      {children}
+    </SliderThumb>
+  );
+}
 
 interface TimeSliderProps {
   dataStartTimeMs: number,
@@ -256,7 +279,7 @@ export default function TimeSlider({
   }
 
   return (
-    <Slider
+    <StyledSlider
       getAriaLabel={() => "Time range"}
       value={value}
       onChange={handleChange}
@@ -266,6 +289,7 @@ export default function TimeSlider({
       disableSwap
       onChangeCommitted={recogniseChange}
       disabled={disabled}
+      components={{ Thumb: StyledThumbComponent }}
     />
   );
 }

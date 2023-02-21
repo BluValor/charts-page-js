@@ -123,6 +123,9 @@ export default function CustomChart({
         display: true,
         time: {
           unit: timeUnits[period],
+          displayFormats: {
+            'hour': 'MMM DD hA'
+         }
         },
         ticks: {
           padding: 20,

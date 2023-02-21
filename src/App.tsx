@@ -55,13 +55,13 @@ export default function App() {
     //     ],
     //     units: ["A", "A", "A"],
     //   },
-    //   // "0-2": {
-    //   //   device: 0,
-    //   //   deviceId: 2,
-    //   //   signals: [5],
-    //   //   labels: ["Output Voltage - Vcn"],
-    //   //   units: ["V"],
-    //   // },
+    //   "0-2": {
+    //     device: 0,
+    //     deviceId: 2,
+    //     signals: [5],
+    //     labels: ["Output Voltage - Vcn"],
+    //     units: ["V"],
+    //   },
     // }));
     const chartMetadataString = sessionStorage.getItem("chartMetadata");
     sessionStorage.removeItem("chartMetadata");
